@@ -72,26 +72,6 @@
         50% { opacity: 1; }
         100% { opacity: 0.2; }
     }
-
-    /* 🔵 Ukryty przycisk w rogu */
-    .secret-btn {
-        position: fixed;
-        bottom: 15px;
-        right: 15px;
-        width: 55px;
-        height: 55px;
-        opacity: 0.35;
-        transition: 0.3s;
-        cursor: pointer;
-        z-index: 9999;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    .secret-btn:hover {
-        opacity: 1;
-        box-shadow: 0 0 15px #00eaff;
-    }
 </style>
 </head>
 
@@ -109,17 +89,6 @@
 
         <div class="live">● LIVE DATA STREAM</div>
     </div>
-</div>
-
-<!-- 🔵 Ukryty przycisk myinstants -->
-<div class="secret-btn">
-    <iframe 
-        src="https://www.myinstants.com/instant/among-us-role-reveal-sound/embed/" 
-        frameborder="0" 
-        scrolling="no" 
-        width="55" 
-        height="55">
-    </iframe>
 </div>
 
 <!-- Firebase -->
