@@ -1,72 +1,121 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>Stacja pogodowa v1.0</title>
-  <style>
+<meta charset="UTF-8">
+<title>Meteo Mission Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
     body {
-      font-family: Arial, sans-serif;
-      background: #0b1020;
-      color: #f5f5f5;
-      margin: 0;
-      padding: 20px;
+        margin: 0;
+        background: #050b18;
+        font-family: 'Segoe UI', sans-serif;
+        color: #cceaff;
+        overflow-x: hidden;
     }
-    h1 {
-      text-align: center;
+
+    .glow {
+        text-shadow: 0 0 10px #00c8ff, 0 0 20px #00c8ff;
     }
-    .card {
-      background: #151a2c;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 10px auto;
-      max-width: 500px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+
+    .container {
+        width: 90%;
+        margin: auto;
+        padding-top: 40px;
+        text-align: center;
     }
+
+    .title {
+        font-size: 40px;
+        margin-bottom: 20px;
+        color: #7fd6ff;
+        animation: glowPulse 3s infinite;
+    }
+
+    @keyframes glowPulse {
+        0% { text-shadow: 0 0 10px #00c8ff; }
+        50% { text-shadow: 0 0 25px #00eaff; }
+        100% { text-shadow: 0 0 10px #00c8ff; }
+    }
+
+    .panel {
+        background: rgba(0, 40, 70, 0.25);
+        border: 1px solid #0af;
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 0 20px #003b66 inset;
+        backdrop-filter: blur(6px);
+    }
+
     .value {
-      font-size: 2rem;
-      font-weight: bold;
+        font-size: 60px;
+        margin: 10px 0;
+        color: #00eaff;
+        font-weight: bold;
     }
+
     .label {
-      font-size: 0.9rem;
-      color: #aaa;
+        font-size: 20px;
+        opacity: 0.7;
     }
-    #history {
-      max-height: 250px;
-      overflow-y: auto;
-      font-size: 0.9rem;
+
+    .live {
+        margin-top: 20px;
+        font-size: 18px;
+        color: #00ffea;
+        animation: blink 1s infinite;
     }
-    button {
-      background: #2f6bff;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
+
+    @keyframes blink {
+        0% { opacity: 0.2; }
+        50% { opacity: 1; }
+        100% { opacity: 0.2; }
     }
-    button:hover {
-      background: #234fcc;
-    }
-    input {
-      background: #0f1424;
-      border: 1px solid #333;
-      color: #f5f5f5;
-      padding: 5px;
-      border-radius: 4px;
-      width: 80px;
-      margin-right: 5px;
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <h1>Stacja pogodowa v1.0</h1>
 
-  <div class="card">
-    <div class="label">Ostatni pomiar</div>
-    <div class="value" id="last-temp">-- °C</div>
-    <div class="value" id="last-hum">-- %</div>
-    <div class="label" id="last-time">Brak danych</div>
-  </div>
+<div class="container">
+    <div class="title glow">METEO MISSION CONTROL</div>
 
-  <div class="card">
-    <div class="label">
+    <div class="panel">
+        <div class="label">Temperatura</div>
+        <div id="temp" class="value">-- °C</div>
+
+        <div class="label">Wilgotność</div>
+        <div id="hum" class="value">-- %</div>
+
+        <div class="live">● LIVE DATA STREAM</div>
+    </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC7JBHvOysb0VsyijNfqyZOzgT7lr6vGmg",
+        databaseURL: "https://esp32-meteo-43e58-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function update() {
+        db.ref("/ostatni/temp").on("value", snap => {
+            document.getElementById("temp").innerText = snap.val() + " °C";
+        });
+
+        db.ref("/ostatni/hum").on("value", snap => {
+            document.getElementById("hum").innerText = snap.val() + " %";
+        });
+    }
+
+    update();
+</script>
+
+</body>
+</html>
