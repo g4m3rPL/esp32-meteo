@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Stacja pogodowa v1.0</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b1020;
+      color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .card {
+      background: #151a2c;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px auto;
+      max-width: 500px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    .value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .label {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    #history {
+      max-height: 250px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+    }
+    button {
+      background: #2f6bff;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #234fcc;
+    }
+    input {
+      background: #0f1424;
+      border: 1px solid #333;
+      color: #f5f5f5;
+      padding: 5px;
+      border-radius: 4px;
+      width: 80px;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Stacja pogodowa v1.0</h1>
+
+  <div class="card">
+    <div class="label">Ostatni pomiar</div>
+    <div class="value" id="last-temp">-- °C</div>
+    <div class="value" id="last-hum">-- %</div>
+    <div class="label" id="last-time">Brak danych</div>
+  </div>
+
+  <div class="card">
+    <div class="label">
