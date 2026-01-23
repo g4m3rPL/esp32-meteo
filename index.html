@@ -64,7 +64,6 @@
     #refreshBtn { background: #2563eb; }
     #colorBtn { background: #9333ea; }
 
-    /* --- LOG OKIENKO --- */
     #logBox {
         width: 450px;
         height: 200px;
@@ -106,18 +105,19 @@
 
 <p style="margin-top:40px; opacity:0.6;">made by g4m3r and MC-AI</p>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
 
+<script>
     const firebaseConfig = {
         apiKey: "AIzaSyC7JBHvOysb0VsyijNfqyZOzgT7lr6vGmg",
         databaseURL: "https://esp32-meteo-43e58-default-rtdb.europe-west1.firebasedatabase.app",
         authDomain: "esp32-meteo-43e58.firebaseapp.com"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     const tempEl = document.getElementById("temp");
     const humEl = document.getElementById("hum");
@@ -143,17 +143,17 @@
     }
 
     function loadData() {
-        get(ref(db, "/stacja/temp")).then(s => {
+        db.ref("/stacja/temp").once("value").then(s => {
             tempEl.textContent = s.val() + " °C";
             addLog(`[${new Date().toLocaleTimeString()}] Temp=${s.val()}°C`);
         });
 
-        get(ref(db, "/stacja/hum")).then(s => {
+        db.ref("/stacja/hum").once("value").then(s => {
             humEl.textContent = s.val() + " %";
             addLog(`[${new Date().toLocaleTimeString()}] Hum=${s.val()}%`);
         });
 
-        get(ref(db, "/stacja/heartbeat")).then(s => {
+        db.ref("/stacja/heartbeat").once("value").then(s => {
             const ts = Date.parse("2026-01-01 " + s.val().split(" ")[1]);
             updateStatus(ts);
         });
