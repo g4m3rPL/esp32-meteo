@@ -61,7 +61,6 @@
         color: white;
     }
 
-    #refreshBtn { background: #2563eb; }
     #colorBtn { background: #9333ea; }
 
     #logBox {
@@ -93,7 +92,6 @@
 
     <div id="status" class="status offline">● OFFLINE</div>
 
-    <button id="refreshBtn">Pobierz dane teraz</button>
     <button id="colorBtn">Zmień kolor strony</button>
 </div>
 
@@ -142,27 +140,21 @@
         logBox.scrollTop = logBox.scrollHeight;
     }
 
-    function loadData() {
-        db.ref("/stacja/temp").once("value").then(s => {
-            tempEl.textContent = s.val() + " °C";
-            addLog(`[${new Date().toLocaleTimeString()}] Temp=${s.val()}°C`);
-        });
+    // REALTIME LISTENERS
+    db.ref("/stacja/temp").on("value", s => {
+        tempEl.textContent = s.val() + " °C";
+        addLog(`[${new Date().toLocaleTimeString()}] Temp=${s.val()}°C`);
+    });
 
-        db.ref("/stacja/hum").once("value").then(s => {
-            humEl.textContent = s.val() + " %";
-            addLog(`[${new Date().toLocaleTimeString()}] Hum=${s.val()}%`);
-        });
+    db.ref("/stacja/hum").on("value", s => {
+        humEl.textContent = s.val() + " %";
+        addLog(`[${new Date().toLocaleTimeString()}] Hum=${s.val()}%`);
+    });
 
-        db.ref("/stacja/heartbeat").once("value").then(s => {
-            const ts = Date.parse(s.val());
-            updateStatus(ts);
-        });
-    }
-
-    loadData();
-    setInterval(loadData, 30000);
-
-    document.getElementById("refreshBtn").onclick = loadData;
+    db.ref("/stacja/heartbeat").on("value", s => {
+        const ts = Date.parse(s.val());
+        updateStatus(ts);
+    });
 
     document.getElementById("colorBtn").onclick = () => {
         document.body.style.background =
