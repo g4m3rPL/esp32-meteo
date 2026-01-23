@@ -3,308 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <title>Meteo Mission Control</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- =======================
-       STYLIZACJA STRONY
-     ======================= -->
 <style>
     body {
-        margin: 0;
-        background: #050b18;
-        font-family: 'Segoe UI', sans-serif;
-        color: #cceaff;
-        overflow-x: hidden;
-        transition: background 0.5s;
-    }
-
-    .container {
-        width: 90%;
-        margin: auto;
-        padding-top: 40px;
+        font-family: Arial, sans-serif;
+        background: #0b0f1a;
+        color: white;
         text-align: center;
+        margin: 0;
+        padding: 0;
     }
 
-    .title {
-        font-size: 42px;
-        margin-bottom: 20px;
-        color: #7fd6ff;
-        text-shadow: 0 0 15px #00c8ff;
-        animation: glowPulse 3s infinite;
-    }
-
-    @keyframes glowPulse {
-        0% { text-shadow: 0 0 10px #00c8ff; }
-        50% { text-shadow: 0 0 25px #00eaff; }
-        100% { text-shadow: 0 0 10px #00c8ff; }
-    }
-
-    /* Panel główny */
-    .panel {
-        background: rgba(0, 40, 70, 0.25);
-        border: 1px solid #0af;
-        border-radius: 12px;
-        padding: 25px;
-        margin-top: 30px;
-        box-shadow: 0 0 20px #003b66 inset;
-        backdrop-filter: blur(6px);
-    }
-
-    .value {
-        font-size: 60px;
-        margin: 10px 0;
-        color: #00eaff;
-        font-weight: bold;
-    }
-
-    .label {
-        font-size: 20px;
-        opacity: 0.7;
-    }
-
-    /* Status online/offline */
-    .status-row {
-        margin-top: 25px;
-        font-size: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .status-dot {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); opacity: 0.5; }
-        50% { transform: scale(1.3); opacity: 1; }
-        100% { transform: scale(1); opacity: 0.5; }
-    }
-
-    /* Najważniejsze zmiany dnia */
-    .highlight-panel {
-        background: rgba(0, 60, 100, 0.25);
-        border: 1px solid #0af;
-        border-radius: 12px;
-        padding: 20px;
-        margin-top: 40px;
-        box-shadow: 0 0 15px #003b66 inset;
-    }
-
-    .highlight-title {
-        font-size: 24px;
-        color: #7fd6ff;
-        margin-bottom: 15px;
-    }
-
-    /* Logi */
-    .log-panel {
-        background: rgba(0, 20, 40, 0.25);
-        border: 1px solid #066;
-        border-radius: 12px;
-        padding: 20px;
-        margin-top: 30px;
-        box-shadow: 0 0 10px #002233 inset;
-    }
-
-    .log-title {
-        font-size: 22px;
-        color: #00eaff;
-        margin-bottom: 10px;
-    }
-
-    .log-entry {
-        font-family: "Consolas", "Courier New", monospace;
-        font-size: 16px;
-        color: #cceaff;
-        margin-bottom: 6px;
-        white-space: pre-wrap;
-    }
-
-    /* Przyciski */
-    .btn {
+    h1 {
         margin-top: 20px;
-        padding: 12px 25px;
-        background: #0077cc;
+        font-size: 32px;
+        letter-spacing: 2px;
+    }
+
+    .card {
+        background: #111827;
+        padding: 20px;
+        margin: 20px auto;
+        width: 300px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .status {
+        font-size: 20px;
+        margin-top: 10px;
+    }
+
+    .online { color: #00ff88; }
+    .offline { color: #ff4444; }
+
+    button {
+        padding: 10px 20px;
+        margin: 10px;
         border: none;
         border-radius: 8px;
-        color: white;
-        font-size: 18px;
         cursor: pointer;
-        transition: 0.3s;
+        font-size: 16px;
     }
 
-    .btn:hover {
-        background: #0099ff;
-        box-shadow: 0 0 10px #00c8ff;
-    }
+    #refreshBtn { background: #2563eb; color: white; }
+    #colorBtn { background: #9333ea; color: white; }
 
-    /* Stopka */
-    .footer {
-        margin-top: 40px;
+    /* --- PRZYCISK MYINSTANTS --- */
+    #soundBtn {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #ff2b2b;
+        border: 4px solid #b30000;
+        cursor: pointer;
         opacity: 0.5;
-        font-size: 14px;
+        transition: 0.2s;
+        z-index: 9999;
+    }
+
+    #soundBtn:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    #soundFrame {
+        display: none;
     }
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<h1>METEO MISSION CONTROL</h1>
 
-    <div class="title">METEO MISSION CONTROL</div>
+<div class="card">
+    <h2>Temperatura</h2>
+    <div id="temp">-- °C</div>
 
-    <!-- =======================
-           PANEL GŁÓWNY
-         ======================= -->
-    <div class="panel">
-        <div class="label">Temperatura</div>
-        <div id="temp" class="value">-- °C</div>
+    <h2>Wilgotność</h2>
+    <div id="hum">-- %</div>
 
-        <div class="label">Wilgotność</div>
-        <div id="hum" class="value">-- %</div>
+    <div id="status" class="status offline">● OFFLINE</div>
 
-        <div class="status-row">
-            <div id="statusDot" class="status-dot" style="background:red;"></div>
-            <div id="statusText">OFFLINE</div>
-        </div>
-
-        <button class="btn" onclick="forceUpdate()">Pobierz dane teraz</button>
-        <button class="btn" onclick="randomColor()">Zmień kolor strony</button>
-    </div>
-
-    <!-- =======================
-         NAJWAŻNIEJSZE ZMIANY
-         ======================= -->
-    <div class="highlight-panel">
-        <div class="highlight-title">Najważniejsze zmiany dnia</div>
-        <div id="highlights">Brak danych...</div>
-    </div>
-
-    <!-- =======================
-              LOGI
-         ======================= -->
-    <div class="log-panel">
-        <div class="log-title">Meteo Log</div>
-        <div id="meteoLog">Ładowanie logów...</div>
-    </div>
-
-    <div class="footer">made by g4m3r and MC‑AI</div>
-
+    <button id="refreshBtn">Pobierz dane teraz</button>
+    <button id="colorBtn">Zmień kolor strony</button>
 </div>
 
-<!-- =======================
-        FIREBASE + LOGIKA
-     ======================= -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<h2>Najważniejsze zmiany dnia</h2>
+<div id="changes">Brak danych...</div>
 
-<script>
+<h2>Meteo Log</h2>
+<div id="log">Ładowanie logów...</div>
+
+<p style="margin-top:40px; opacity:0.6;">made by g4m3r and MC-AI</p>
+
+<!-- UKRYTY IFRAME Z DŹWIĘKIEM -->
+<iframe id="soundFrame" src="https://www.myinstants.com/instant/brek-widzisz-mnie-36839/embed/" frameborder="0"></iframe>
+
+<!-- PRZYCISK MYINSTANTS -->
+<div id="soundBtn"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyC7JBHvOysb0VsyijNfqyZOzgT7lr6vGmg",
-        databaseURL: "https://esp32-meteo-43e58-default-rtdb.europe-west1.firebasedatabase.app"
+        databaseURL: "https://esp32-meteo-43e58-default-rtdb.europe-west1.firebasedatabase.app",
+        authDomain: "esp32-meteo-43e58.firebaseapp.com"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    let lastTimestamp = 0;
-    let lastTemp = null;
-    let lastHum = null;
+    const tempEl = document.getElementById("temp");
+    const humEl = document.getElementById("hum");
+    const statusEl = document.getElementById("status");
+    const logEl = document.getElementById("log");
 
-    /* =======================
-          FUNKCJE LOGÓW
-       ======================= */
-    function addLogEntry(text) {
-        const log = document.getElementById("meteoLog");
-        const timestamp = new Date().toLocaleTimeString();
-
-        const entry = document.createElement("div");
-        entry.className = "log-entry";
-        entry.textContent = `[${timestamp}] ${text}`;
-
-        log.prepend(entry);
-    }
-
-    function addHighlight(text) {
-        const highlights = document.getElementById("highlights");
-
-        const entry = document.createElement("div");
-        entry.className = "log-entry";
-        entry.textContent = text;
-
-        highlights.prepend(entry);
-    }
-
-    /* =======================
-          STATUS ONLINE
-       ======================= */
-    function updateStatus() {
+    function updateStatus(ts) {
         const now = Date.now();
-        const diff = now - lastTimestamp;
+        const diff = now - ts;
 
-        const dot = document.getElementById("statusDot");
-        const text = document.getElementById("statusText");
-
-        if (diff < 10000) {
-            dot.style.background = "lime";
-            text.textContent = "ONLINE";
+        if (diff < 5 * 60 * 1000) {
+            statusEl.textContent = "● ONLINE";
+            statusEl.className = "status online";
         } else {
-            dot.style.background = "red";
-            text.textContent = "OFFLINE";
+            statusEl.textContent = "● OFFLINE";
+            statusEl.className = "status offline";
         }
     }
 
-    setInterval(updateStatus, 1000);
+    function loadData() {
+        get(ref(db, "/stacja/temp")).then(s => tempEl.textContent = s.val() + " °C");
+        get(ref(db, "/stacja/hum")).then(s => humEl.textContent = s.val() + " %");
 
-    /* =======================
-          ODBIÓR DANYCH
-       ======================= */
-    db.ref("/ostatni").on("value", snap => {
-        const data = snap.val();
-        if (!data) return;
+        get(ref(db, "/stacja/heartbeat")).then(s => {
+            const ts = Date.parse("2026-01-01 " + s.val().split(" ")[1]);
+            updateStatus(ts);
+        });
 
-        const t = data.temp;
-        const h = data.hum;
-
-        if (data.timestamp) {
-            lastTimestamp = data.timestamp * 1000;
-        }
-
-        document.getElementById("temp").innerText = t + " °C";
-        document.getElementById("hum").innerText = h + " %";
-
-        addLogEntry(`Temp=${t}°C  Hum=${h}%`);
-
-        if (lastTemp !== null && Math.abs(t - lastTemp) > 1.5) {
-            addHighlight(`Duża zmiana temperatury: ${lastTemp}°C → ${t}°C`);
-        }
-
-        if (lastHum !== null && Math.abs(h - lastHum) > 5) {
-            addHighlight(`Skok wilgotności: ${lastHum}% → ${h}%`);
-        }
-
-        lastTemp = t;
-        lastHum = h;
-    });
-
-    /* =======================
-          PRZYCISKI
-       ======================= */
-    function forceUpdate() {
-        addLogEntry("Wymuszono pobranie danych.");
+        logEl.textContent = `[${new Date().toLocaleTimeString()}] Temp=${tempEl.textContent} Hum=${humEl.textContent}`;
     }
 
-    function randomColor() {
-        const r = Math.floor(Math.random() * 80);
-        const g = Math.floor(Math.random() * 80);
-        const b = Math.floor(Math.random() * 80);
-        document.body.style.background = `rgb(${r},${g},${b})`;
-    }
+    loadData();
+
+    document.getElementById("refreshBtn").onclick = loadData;
+
+    document.getElementById("colorBtn").onclick = () => {
+        document.body.style.background =
+            document.body.style.background === "white" ? "#0b0f1a" : "white";
+        document.body.style.color =
+            document.body.style.color === "black" ? "white" : "black";
+    };
+
+    // PRZYCISK DŹWIĘKU
+    document.getElementById("soundBtn").onclick = () => {
+        const frame = document.getElementById("soundFrame");
+        frame.src = frame.src; // restart dźwięku
+    };
 </script>
 
 </body>
