@@ -10,7 +10,8 @@ Things i used for the project:
 4. PowerBank
 5. USB-Mini cable
 6. ,,Do Not Eat" Silica Gel
-7. SOme tape
+7. Some tape
+8. Breadboard (830 pins)
 
 
 There will be updates, where there will be new modules.
