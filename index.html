@@ -5,6 +5,9 @@
 <title>Meteo Mission Control</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- =======================
+       STYLIZACJA STRONY
+     ======================= -->
 <style>
     body {
         margin: 0;
@@ -15,10 +18,6 @@
         transition: background 0.5s;
     }
 
-    .glow {
-        text-shadow: 0 0 10px #00c8ff, 0 0 20px #00c8ff;
-    }
-
     .container {
         width: 90%;
         margin: auto;
@@ -27,9 +26,10 @@
     }
 
     .title {
-        font-size: 40px;
+        font-size: 42px;
         margin-bottom: 20px;
         color: #7fd6ff;
+        text-shadow: 0 0 15px #00c8ff;
         animation: glowPulse 3s infinite;
     }
 
@@ -39,6 +39,7 @@
         100% { text-shadow: 0 0 10px #00c8ff; }
     }
 
+    /* Panel główny */
     .panel {
         background: rgba(0, 40, 70, 0.25);
         border: 1px solid #0af;
@@ -65,7 +66,6 @@
     .status-row {
         margin-top: 25px;
         font-size: 20px;
-        color: #cceaff;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -155,8 +155,12 @@
 <body>
 
 <div class="container">
-    <div class="title glow">METEO MISSION CONTROL</div>
 
+    <div class="title">METEO MISSION CONTROL</div>
+
+    <!-- =======================
+           PANEL GŁÓWNY
+         ======================= -->
     <div class="panel">
         <div class="label">Temperatura</div>
         <div id="temp" class="value">-- °C</div>
@@ -173,26 +177,29 @@
         <button class="btn" onclick="randomColor()">Zmień kolor strony</button>
     </div>
 
-    <!-- Najważniejsze zmiany dnia -->
+    <!-- =======================
+         NAJWAŻNIEJSZE ZMIANY
+         ======================= -->
     <div class="highlight-panel">
         <div class="highlight-title">Najważniejsze zmiany dnia</div>
-        <div id="highlights">
-            Brak danych...
-        </div>
+        <div id="highlights">Brak danych...</div>
     </div>
 
-    <!-- Pełny log -->
+    <!-- =======================
+              LOGI
+         ======================= -->
     <div class="log-panel">
         <div class="log-title">Meteo Log</div>
-        <div id="meteoLog">
-            Ładowanie logów...
-        </div>
+        <div id="meteoLog">Ładowanie logów...</div>
     </div>
 
     <div class="footer">made by g4m3r and MC‑AI</div>
+
 </div>
 
-<!-- Firebase -->
+<!-- =======================
+        FIREBASE + LOGIKA
+     ======================= -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -209,6 +216,9 @@
     let lastTemp = null;
     let lastHum = null;
 
+    /* =======================
+          FUNKCJE LOGÓW
+       ======================= */
     function addLogEntry(text) {
         const log = document.getElementById("meteoLog");
         const timestamp = new Date().toLocaleTimeString();
@@ -230,6 +240,9 @@
         highlights.prepend(entry);
     }
 
+    /* =======================
+          STATUS ONLINE
+       ======================= */
     function updateStatus() {
         const now = Date.now();
         const diff = now - lastTimestamp;
@@ -248,16 +261,19 @@
 
     setInterval(updateStatus, 1000);
 
-    // Pobieranie danych z Firebase
+    /* =======================
+          ODBIÓR DANYCH
+       ======================= */
     db.ref("/ostatni").on("value", snap => {
         const data = snap.val();
         if (!data) return;
 
         const t = data.temp;
         const h = data.hum;
-        const ts = data.timestamp;
 
-        lastTimestamp = ts;
+        if (data.timestamp) {
+            lastTimestamp = data.timestamp * 1000;
+        }
 
         document.getElementById("temp").innerText = t + " °C";
         document.getElementById("hum").innerText = h + " %";
@@ -276,12 +292,13 @@
         lastHum = h;
     });
 
-    // Funkcja pobrania danych teraz
+    /* =======================
+          PRZYCISKI
+       ======================= */
     function forceUpdate() {
         addLogEntry("Wymuszono pobranie danych.");
     }
 
-    // Losowy kolor tła
     function randomColor() {
         const r = Math.floor(Math.random() * 80);
         const g = Math.floor(Math.random() * 80);
