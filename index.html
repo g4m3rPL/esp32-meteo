@@ -3,74 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <title>Meteo Mission Control</title>
+
 <style>
     body {
         font-family: Arial, sans-serif;
-        background: #0b0f1a;
-        color: white;
-        text-align: center;
+        background: #0a0f1f;
+        color: #e0eaff;
         margin: 0;
         padding: 0;
+        text-align: center;
     }
 
     h1 {
-        margin-top: 20px;
-        font-size: 32px;
-        letter-spacing: 2px;
+        margin-top: 25px;
+        font-size: 42px;
+        letter-spacing: 3px;
+        text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+        animation: pulse 2s infinite alternate;
+    }
+
+    @keyframes pulse {
+        from { text-shadow: 0 0 10px #00eaff; }
+        to   { text-shadow: 0 0 25px #00eaff; }
     }
 
     .card {
-        background: #111827;
-        padding: 20px;
-        margin: 20px auto;
-        width: 300px;
-        border-radius: 12px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        background: rgba(20, 30, 50, 0.85);
+        padding: 25px;
+        margin: 25px auto;
+        width: 450px;
+        border-radius: 15px;
+        box-shadow: 0 0 25px rgba(0, 200, 255, 0.25);
+        backdrop-filter: blur(4px);
+    }
+
+    .value {
+        font-size: 45px;
+        margin: 10px 0;
+        text-shadow: 0 0 10px #00eaff;
     }
 
     .status {
-        font-size: 20px;
+        font-size: 22px;
         margin-top: 10px;
     }
 
-    .online { color: #00ff88; }
-    .offline { color: #ff4444; }
+    .online { color: #00ff88; text-shadow: 0 0 10px #00ff88; }
+    .offline { color: #ff4444; text-shadow: 0 0 10px #ff4444; }
 
     button {
-        padding: 10px 20px;
+        padding: 12px 22px;
         margin: 10px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 17px;
+        color: white;
     }
 
-    #refreshBtn { background: #2563eb; color: white; }
-    #colorBtn { background: #9333ea; color: white; }
+    #refreshBtn { background: #2563eb; }
+    #colorBtn { background: #9333ea; }
+
+    /* --- LOG OKIENKO --- */
+    #logBox {
+        width: 450px;
+        height: 200px;
+        margin: 20px auto;
+        background: rgba(10, 15, 30, 0.8);
+        border-radius: 10px;
+        padding: 10px;
+        overflow-y: scroll;
+        font-family: monospace;
+        font-size: 15px;
+        text-align: left;
+        box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
+    }
 
     /* --- PRZYCISK MYINSTANTS --- */
     #soundBtn {
         position: fixed;
         top: 10px;
         right: 10px;
-        width: 60px;
-        height: 60px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background: #ff2b2b;
-        border: 4px solid #b30000;
+        border: 3px solid #b30000;
         cursor: pointer;
         opacity: 0.5;
         transition: 0.2s;
         z-index: 9999;
+        box-shadow: 0 0 10px #ff0000;
     }
 
     #soundBtn:hover {
         opacity: 1;
-        transform: scale(1.1);
+        transform: scale(1.15);
     }
 
     #soundFrame {
-        display: none;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
     }
 </style>
 </head>
@@ -80,10 +116,10 @@
 
 <div class="card">
     <h2>Temperatura</h2>
-    <div id="temp">-- °C</div>
+    <div id="temp" class="value">-- °C</div>
 
     <h2>Wilgotność</h2>
-    <div id="hum">-- %</div>
+    <div id="hum" class="value">-- %</div>
 
     <div id="status" class="status offline">● OFFLINE</div>
 
@@ -95,19 +131,22 @@
 <div id="changes">Brak danych...</div>
 
 <h2>Meteo Log</h2>
-<div id="log">Ładowanie logów...</div>
+<div id="logBox">Ładowanie logów...</div>
 
 <p style="margin-top:40px; opacity:0.6;">made by g4m3r and MC-AI</p>
 
 <!-- UKRYTY IFRAME Z DŹWIĘKIEM -->
-<iframe id="soundFrame" src="https://www.myinstants.com/instant/brek-widzisz-mnie-36839/embed/" frameborder="0"></iframe>
+<iframe id="soundFrame"
+        src="https://www.myinstants.com/instant/brek-widzisz-mnie-36839/embed/"
+        frameborder="0">
+</iframe>
 
-<!-- PRZYCISK MYINSTANTS -->
+<!-- PRZYCISK -->
 <div id="soundBtn"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC7JBHvOysb0VsyijNfqyZOzgT7lr6vGmg",
@@ -121,7 +160,7 @@
     const tempEl = document.getElementById("temp");
     const humEl = document.getElementById("hum");
     const statusEl = document.getElementById("status");
-    const logEl = document.getElementById("log");
+    const logBox = document.getElementById("logBox");
 
     function updateStatus(ts) {
         const now = Date.now();
@@ -136,16 +175,26 @@
         }
     }
 
+    function addLog(text) {
+        logBox.textContent += text + "\n";
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
     function loadData() {
-        get(ref(db, "/stacja/temp")).then(s => tempEl.textContent = s.val() + " °C");
-        get(ref(db, "/stacja/hum")).then(s => humEl.textContent = s.val() + " %");
+        get(ref(db, "/stacja/temp")).then(s => {
+            tempEl.textContent = s.val() + " °C";
+            addLog(`[${new Date().toLocaleTimeString()}] Temp=${s.val()}°C`);
+        });
+
+        get(ref(db, "/stacja/hum")).then(s => {
+            humEl.textContent = s.val() + " %";
+            addLog(`[${new Date().toLocaleTimeString()}] Hum=${s.val()}%`);
+        });
 
         get(ref(db, "/stacja/heartbeat")).then(s => {
             const ts = Date.parse("2026-01-01 " + s.val().split(" ")[1]);
             updateStatus(ts);
         });
-
-        logEl.textContent = `[${new Date().toLocaleTimeString()}] Temp=${tempEl.textContent} Hum=${humEl.textContent}`;
     }
 
     loadData();
@@ -154,15 +203,15 @@
 
     document.getElementById("colorBtn").onclick = () => {
         document.body.style.background =
-            document.body.style.background === "white" ? "#0b0f1a" : "white";
+            document.body.style.background === "white" ? "#0a0f1f" : "white";
         document.body.style.color =
-            document.body.style.color === "black" ? "white" : "black";
+            document.body.style.color === "black" ? "#e0eaff" : "black";
     };
 
     // PRZYCISK DŹWIĘKU
     document.getElementById("soundBtn").onclick = () => {
         const frame = document.getElementById("soundFrame");
-        frame.src = frame.src; // restart dźwięku
+        frame.src = frame.src;   // restart dźwięku
     };
 </script>
 
