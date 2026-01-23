@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Meteo Mission Control</title>
+<title>Stacja Pogodowa Wierzchowisko</title>
 
 <style>
     body {
@@ -17,14 +17,8 @@
     h1 {
         margin-top: 25px;
         font-size: 42px;
-        letter-spacing: 3px;
+        letter-spacing: 2px;
         text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
-        animation: pulse 2s infinite alternate;
-    }
-
-    @keyframes pulse {
-        from { text-shadow: 0 0 10px #00eaff; }
-        to   { text-shadow: 0 0 25px #00eaff; }
     }
 
     .card {
@@ -43,14 +37,6 @@
         text-shadow: 0 0 10px #00eaff;
     }
 
-    .status {
-        font-size: 22px;
-        margin-top: 10px;
-    }
-
-    .online { color: #00ff88; text-shadow: 0 0 10px #00ff88; }
-    .offline { color: #ff4444; text-shadow: 0 0 10px #ff4444; }
-
     button {
         padding: 12px 22px;
         margin: 10px;
@@ -59,9 +45,8 @@
         cursor: pointer;
         font-size: 17px;
         color: white;
+        background: #9333ea;
     }
-
-    #colorBtn { background: #9333ea; }
 
     #logBox {
         width: 450px;
@@ -77,11 +62,24 @@
         box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
         white-space: pre-line;
     }
+
+    #error {
+        color: #ff4444;
+        font-size: 18px;
+        margin-top: 10px;
+        text-shadow: 0 0 10px #ff4444;
+    }
+
+    #lastRecord {
+        margin-top: 10px;
+        font-size: 18px;
+        opacity: 0.8;
+    }
 </style>
 </head>
 <body>
 
-<h1>METEO MISSION CONTROL</h1>
+<h1>Stacja Pogodowa Wierzchowisko</h1>
 
 <div class="card">
     <h2>Temperatura</h2>
@@ -90,20 +88,18 @@
     <h2>Wilgotność</h2>
     <div id="hum" class="value">-- %</div>
 
-    <div id="status" class="status offline">● OFFLINE</div>
+    <div id="lastRecord">Ostatni pomiar: --</div>
 
-    <button id="colorBtn">Zmień kolor strony</button>
+    <button id="fetchBtn">Pobierz dane teraz</button>
+    <div id="error"></div>
 </div>
 
-<h2>Najważniejsze zmiany dnia</h2>
-<div id="changes">Brak danych...</div>
-
-<h2>Meteo Log</h2>
-<div id="logBox">Ładowanie logów...</div>
+<h2>Logi Stacji Wierzchowisko</h2>
+<div id="logBox">Oczekiwanie na pobranie danych...</div>
 
 <p style="margin-top:40px; opacity:0.6;">made by g4m3r and MC-AI</p>
 
-<!-- Firebase SDK (compat mode) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
@@ -119,51 +115,47 @@
 
     const tempEl = document.getElementById("temp");
     const humEl = document.getElementById("hum");
-    const statusEl = document.getElementById("status");
+    const lastRecordEl = document.getElementById("lastRecord");
+    const errorEl = document.getElementById("error");
     const logBox = document.getElementById("logBox");
-
-    function updateStatus(ts) {
-        const now = Date.now();
-        const diff = now - ts;
-
-        if (diff < 5 * 60 * 1000) {
-            statusEl.textContent = "● ONLINE";
-            statusEl.className = "status online";
-        } else {
-            statusEl.textContent = "● OFFLINE";
-            statusEl.className = "status offline";
-        }
-    }
 
     function addLog(text) {
         logBox.textContent += text + "\n";
         logBox.scrollTop = logBox.scrollHeight;
     }
 
-    // REALTIME LISTENERS
-    db.ref("/stacja/temp").on("value", s => {
-        tempEl.textContent = s.val() + " °C";
-        addLog(`[${new Date().toLocaleTimeString()}] Temp=${s.val()}°C`);
-    });
+    async function fetchData() {
+        errorEl.textContent = "";
 
-    db.ref("/stacja/hum").on("value", s => {
-        humEl.textContent = s.val() + " %";
-        addLog(`[${new Date().toLocaleTimeString()}] Hum=${s.val()}%`);
-    });
+        try {
+            const tempSnap = await db.ref("/stacja/temp").get();
+            const humSnap = await db.ref("/stacja/hum").get();
+            const lastTempSnap = await db.ref("/ostatni/temp").get();
+            const lastHumSnap = await db.ref("/ostatni/hum").get();
 
-db.ref("/stacja/heartbeat").on("value", s => {
-    const ts = new Date(s.val().replace(" ", "T")).getTime();
-    updateStatus(ts);
-});
+            if (!tempSnap.exists() || !humSnap.exists()) {
+                throw new Error("Brak danych");
+            }
 
-    document.getElementById("colorBtn").onclick = () => {
-        document.body.style.background =
-            document.body.style.background === "white" ? "#0a0f1f" : "white";
-        document.body.style.color =
-            document.body.style.color === "black" ? "#e0eaff" : "black";
-    };
+            const temp = tempSnap.val();
+            const hum = humSnap.val();
+
+            tempEl.textContent = temp + " °C";
+            humEl.textContent = hum + " %";
+
+            const now = new Date().toLocaleTimeString();
+            lastRecordEl.textContent = "Ostatni pomiar: " + now;
+
+            addLog(`[${now}] Temp=${temp}°C  Hum=${hum}%`);
+
+        } catch (err) {
+            errorEl.textContent = "błąd pobrania: stacja nie odpowiada";
+            addLog(`[ERROR] ${err.message}`);
+        }
+    }
+
+    document.getElementById("fetchBtn").onclick = fetchData;
 </script>
 
 </body>
 </html>
-
