@@ -151,10 +151,10 @@
         addLog(`[${new Date().toLocaleTimeString()}] Hum=${s.val()}%`);
     });
 
-    db.ref("/stacja/heartbeat").on("value", s => {
-        const ts = Date.parse(s.val());
-        updateStatus(ts);
-    });
+db.ref("/stacja/heartbeat").on("value", s => {
+    const ts = new Date(s.val().replace(" ", "T")).getTime();
+    updateStatus(ts);
+});
 
     document.getElementById("colorBtn").onclick = () => {
         document.body.style.background =
@@ -166,3 +166,4 @@
 
 </body>
 </html>
+
