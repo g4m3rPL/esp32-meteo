@@ -77,36 +77,7 @@
         font-size: 15px;
         text-align: left;
         box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
-    }
-
-    /* --- PRZYCISK MYINSTANTS --- */
-    #soundBtn {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #ff2b2b;
-        border: 3px solid #b30000;
-        cursor: pointer;
-        opacity: 0.5;
-        transition: 0.2s;
-        z-index: 9999;
-        box-shadow: 0 0 10px #ff0000;
-    }
-
-    #soundBtn:hover {
-        opacity: 1;
-        transform: scale(1.15);
-    }
-
-    #soundFrame {
-        width: 1px;
-        height: 1px;
-        opacity: 0;
-        pointer-events: none;
-        position: absolute;
+        white-space: pre-line;
     }
 </style>
 </head>
@@ -134,15 +105,6 @@
 <div id="logBox">Ładowanie logów...</div>
 
 <p style="margin-top:40px; opacity:0.6;">made by g4m3r and MC-AI</p>
-
-<!-- UKRYTY IFRAME Z DŹWIĘKIEM -->
-<iframe id="soundFrame"
-        src="https://www.myinstants.com/instant/brek-widzisz-mnie-36839/embed/"
-        frameborder="0">
-</iframe>
-
-<!-- PRZYCISK -->
-<div id="soundBtn"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -206,12 +168,6 @@
             document.body.style.background === "white" ? "#0a0f1f" : "white";
         document.body.style.color =
             document.body.style.color === "black" ? "#e0eaff" : "black";
-    };
-
-    // PRZYCISK DŹWIĘKU
-    document.getElementById("soundBtn").onclick = () => {
-        const frame = document.getElementById("soundFrame");
-        frame.src = frame.src;   // restart dźwięku
     };
 </script>
 
