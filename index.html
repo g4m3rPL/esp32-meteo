@@ -12,6 +12,7 @@
         font-family: 'Segoe UI', sans-serif;
         color: #cceaff;
         overflow-x: hidden;
+        transition: background 0.5s;
     }
 
     .glow {
@@ -60,17 +61,93 @@
         opacity: 0.7;
     }
 
-    .live {
-        margin-top: 20px;
-        font-size: 18px;
-        color: #00ffea;
-        animation: blink 1s infinite;
+    /* Status online/offline */
+    .status-row {
+        margin-top: 25px;
+        font-size: 20px;
+        color: #cceaff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
     }
 
-    @keyframes blink {
-        0% { opacity: 0.2; }
-        50% { opacity: 1; }
-        100% { opacity: 0.2; }
+    .status-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.3); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.5; }
+    }
+
+    /* Najważniejsze zmiany dnia */
+    .highlight-panel {
+        background: rgba(0, 60, 100, 0.25);
+        border: 1px solid #0af;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 40px;
+        box-shadow: 0 0 15px #003b66 inset;
+    }
+
+    .highlight-title {
+        font-size: 24px;
+        color: #7fd6ff;
+        margin-bottom: 15px;
+    }
+
+    /* Logi */
+    .log-panel {
+        background: rgba(0, 20, 40, 0.25);
+        border: 1px solid #066;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 30px;
+        box-shadow: 0 0 10px #002233 inset;
+    }
+
+    .log-title {
+        font-size: 22px;
+        color: #00eaff;
+        margin-bottom: 10px;
+    }
+
+    .log-entry {
+        font-family: "Consolas", "Courier New", monospace;
+        font-size: 16px;
+        color: #cceaff;
+        margin-bottom: 6px;
+        white-space: pre-wrap;
+    }
+
+    /* Przyciski */
+    .btn {
+        margin-top: 20px;
+        padding: 12px 25px;
+        background: #0077cc;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn:hover {
+        background: #0099ff;
+        box-shadow: 0 0 10px #00c8ff;
+    }
+
+    /* Stopka */
+    .footer {
+        margin-top: 40px;
+        opacity: 0.5;
+        font-size: 14px;
     }
 </style>
 </head>
@@ -87,8 +164,32 @@
         <div class="label">Wilgotność</div>
         <div id="hum" class="value">-- %</div>
 
-        <div class="live">● LIVE DATA STREAM</div>
+        <div class="status-row">
+            <div id="statusDot" class="status-dot" style="background:red;"></div>
+            <div id="statusText">OFFLINE</div>
+        </div>
+
+        <button class="btn" onclick="forceUpdate()">Pobierz dane teraz</button>
+        <button class="btn" onclick="randomColor()">Zmień kolor strony</button>
     </div>
+
+    <!-- Najważniejsze zmiany dnia -->
+    <div class="highlight-panel">
+        <div class="highlight-title">Najważniejsze zmiany dnia</div>
+        <div id="highlights">
+            Brak danych...
+        </div>
+    </div>
+
+    <!-- Pełny log -->
+    <div class="log-panel">
+        <div class="log-title">Meteo Log</div>
+        <div id="meteoLog">
+            Ładowanie logów...
+        </div>
+    </div>
+
+    <div class="footer">made by g4m3r and MC‑AI</div>
 </div>
 
 <!-- Firebase -->
@@ -104,17 +205,89 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function update() {
-        db.ref("/ostatni/temp").on("value", snap => {
-            document.getElementById("temp").innerText = snap.val() + " °C";
-        });
+    let lastTimestamp = 0;
+    let lastTemp = null;
+    let lastHum = null;
 
-        db.ref("/ostatni/hum").on("value", snap => {
-            document.getElementById("hum").innerText = snap.val() + " %";
-        });
+    function addLogEntry(text) {
+        const log = document.getElementById("meteoLog");
+        const timestamp = new Date().toLocaleTimeString();
+
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+        entry.textContent = `[${timestamp}] ${text}`;
+
+        log.prepend(entry);
     }
 
-    update();
+    function addHighlight(text) {
+        const highlights = document.getElementById("highlights");
+
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+        entry.textContent = text;
+
+        highlights.prepend(entry);
+    }
+
+    function updateStatus() {
+        const now = Date.now();
+        const diff = now - lastTimestamp;
+
+        const dot = document.getElementById("statusDot");
+        const text = document.getElementById("statusText");
+
+        if (diff < 10000) {
+            dot.style.background = "lime";
+            text.textContent = "ONLINE";
+        } else {
+            dot.style.background = "red";
+            text.textContent = "OFFLINE";
+        }
+    }
+
+    setInterval(updateStatus, 1000);
+
+    // Pobieranie danych z Firebase
+    db.ref("/ostatni").on("value", snap => {
+        const data = snap.val();
+        if (!data) return;
+
+        const t = data.temp;
+        const h = data.hum;
+        const ts = data.timestamp;
+
+        lastTimestamp = ts;
+
+        document.getElementById("temp").innerText = t + " °C";
+        document.getElementById("hum").innerText = h + " %";
+
+        addLogEntry(`Temp=${t}°C  Hum=${h}%`);
+
+        if (lastTemp !== null && Math.abs(t - lastTemp) > 1.5) {
+            addHighlight(`Duża zmiana temperatury: ${lastTemp}°C → ${t}°C`);
+        }
+
+        if (lastHum !== null && Math.abs(h - lastHum) > 5) {
+            addHighlight(`Skok wilgotności: ${lastHum}% → ${h}%`);
+        }
+
+        lastTemp = t;
+        lastHum = h;
+    });
+
+    // Funkcja pobrania danych teraz
+    function forceUpdate() {
+        addLogEntry("Wymuszono pobranie danych.");
+    }
+
+    // Losowy kolor tła
+    function randomColor() {
+        const r = Math.floor(Math.random() * 80);
+        const g = Math.floor(Math.random() * 80);
+        const b = Math.floor(Math.random() * 80);
+        document.body.style.background = `rgb(${r},${g},${b})`;
+    }
 </script>
 
 </body>
