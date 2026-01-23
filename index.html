@@ -155,7 +155,12 @@
     }
 
     document.getElementById("fetchBtn").onclick = fetchData;
+    document.getElementById("fetchBtn").onclick = fetchData;
+
+// Automatyczne pobieranie co 10 sekund
+setInterval(fetchData, 10000);
 </script>
 
 </body>
 </html>
+
